@@ -1,36 +1,39 @@
 require 'honeydew/version'
-require 'honeydew/methods'
+require 'honeydew/token_access'
 require 'sinatra'
 require 'dalli'
-require 'base64'
+require 'modularity'
 
 module Honeydew
 
   class Middleware < Sinatra::Base
 
-    include Honeydew::Methods
+    set :cache, Dalli::Client.new
+
+    include Honeydew::TokenAccess
+
+    configure :production, :development do
+      enable :logging
+    end
 
     def check_credentials(id, secret)
-      puts "Id: #{id}, Secret: #{secret}"
+      logger.info "Id: #{id}, Secret: #{secret}"
       true
     end
 
-    before '/access/token/*' do
-      begin
-        authorization = request['Authorization']
-        type, digest = authorization.split(' ', 1)
-        id, secret = Base64.decode64(digest).split(':', 1)
-        raise Exception unless check_credentials(id, secret)
-      rescue Exception => e
-        halt 401, { 'WWW-Authenticate' => %Q{Basic realm="#{realm}"} }, ''
+    before '/access/tokens/*' do
+      @auth ||= Rack::Auth::Basic::Request.new(request.env)
+      unless @auth.provided? and @auth.basic? and @auth.credentials and check_credentials(@auth.credentials[0], @auth.credentials[1])
+        halt 401, { 'WWW-Authenticate' => 'Basic realm="AccessTokens"' }, ''
       end
     end
 
-    put '/access/token/:token' do |token|
+    put '/access/tokens/:token' do |token|
       begin
-        put_token(token, Integer(params.fetch(:expires_in)), 
-          identity: params.fetch(:identity), 
-          client: params.fetch(:client)
+        logger.info "Params: #{params}"
+        put_token(token, Integer(params.fetch('expires_in')), 
+          identity: params.fetch('identity'), 
+          client: params.fetch('client')
         )
         body 'Token Accepted'
       rescue => e
