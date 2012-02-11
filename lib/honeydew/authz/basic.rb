@@ -16,7 +16,10 @@ module Honeydew
 
         def authenticate!
           return unauthorized unless auth.provided? and auth.basic? and auth.credentials
-          user = config.lookup.call(auth.credentials.first, auth.credentials.last)
+          credentials = auth.credentials.map do |credential|
+            config.hash_credentials ? Digest::SHA2.new(256).update(credential).to_s : credential
+          end
+          user = config.lookup.call(credentials.first, credentials.last)
           return user ? success!(auth.credentials.first) : unauthorized
         end
 
@@ -31,7 +34,8 @@ module Honeydew
         def basic(name, &block)
           config = Honeydew::Config.new(
             realm: 'Access Tokens',
-            fail_message: 'Authorization Failed'
+            fail_message: 'Authorization Failed',
+            hash_credentials: false
           )
           if block_given?
             if block.arity == 1 

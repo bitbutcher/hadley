@@ -14,7 +14,9 @@ module Honeydew
 
     def get(token)
       access = @store.get(key_for(token))
-      access[:anonymous] = access[:identity] == @@ANONYMOUS_IDENTITY
+      if access
+        access[:anonymous] = access[:identity] == @@ANONYMOUS_IDENTITY
+      end
       access
     end
 

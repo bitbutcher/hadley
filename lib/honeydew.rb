@@ -27,7 +27,7 @@ module Honeydew
 
     put '/access/tokens/:token' do |token|
       warden.authenticate!(:afid_server)
-      logger.info "Warden User: #{warden.user}"
+      # logger.info "Warden User: #{warden.user}"
       begin
         @tokens.put(token, Integer(params.fetch('expires_in')), 
           identity: params.fetch('identity'), 
@@ -40,7 +40,7 @@ module Honeydew
       end
     end
 
-    delete '/access/token/:token' do |token|
+    delete '/access/tokens/:token' do |token|
       warden.authenticate!(:afid_server)
       begin
         @tokens.delete(token)

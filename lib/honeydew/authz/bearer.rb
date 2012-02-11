@@ -33,8 +33,8 @@ module Honeydew
         def authenticate!(anonymous_allowed=false)
           return unauthorized unless auth.provided? and auth.bearer? and auth.token
           user = config.token_store.get(auth.token)
-          puts "The user is: #{user}, Anonymous Allowed: #{config.anonymous_allowed}"
-          return unautorized unless user and (!user[:anonymous] or config.anonymous_allowed)
+          # puts "The user is: #{user}\nAnonymous Allowed: #{config.anonymous_allowed}\nStrategy: #{self.class.name}"
+          return unauthorized unless user and (!user[:anonymous] or config.anonymous_allowed)
           success!(user)
         end
 

@@ -21,7 +21,7 @@ module Honeydew
 
       def create_strategy(name)
         class_name = camelize(name.to_s)
-        puts "Class Name: #{class_name}"
+        # puts "Class Name: #{class_name}"
         if self.const_defined?(class_name)
           self.const_get(class_name) 
         else

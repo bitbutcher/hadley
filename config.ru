@@ -3,36 +3,49 @@
 require ::File.expand_path('../lib/honeydew',  __FILE__)
 require 'dalli'
 require 'sinatra/base'
+require 'json'
 
 class ToyMiddleware < Sinatra::Base
   include Honeydew::Authz
-  get '/api/anon/resources' do
-    warden.authenticate!(:afid_client)
-    logger.info "Warden User: #{warden.user}"
-    body 'This is the anonymous resource you requested'
+
+  get '/' do
+    body 'afid-resource-server'
   end
-  get '/api/user/resources' do
+
+  get '/v1/current_time' do
     warden.authenticate!(:afid_user)
-    logger.info "Warden User: #{warden.user}"
-    body 'This is the anonymous resource you requested'
+    body({current_time: Time.now.strftime('%Y-%m-%dT%H:%M:%SZ')}.to_json)
   end
+
+  get '/v1/anonymous_time' do
+    warden.authenticate!(:afid_client)
+    body({current_time: Time.now.strftime('%s')}.to_json)
+  end
+
   token_store = Honeydew::TokenAccess.new(Dalli::Client.new)
-  use Rack::Session::Cookie, :secret => "some top secret shit"
+
+  use Rack::Session::Cookie, :secret => 'a8ab10237100f16d12b6c8e574e84b92cc15aecaced04d47251a5f34ffaa0e60'
+
   use Warden::Manager do |manager|
     manager.basic(:server) do |basic|
+      basic.hash_credentials = true
       basic.lookup do |id, secret|
-        id == 'this' and secret == 'that' ? id : nil
+        [ id, secret] == [
+          'a8ab10237100f16d12b6c8e574e84b92cc15aecaced04d47251a5f34ffaa0e60',
+          '29cd5d3e8f481821422f886055d536c8e395a8aa123700eec74f045b0144e986'
+        ] ? id : nil
       end
     end
     manager.bearer(:client) do |bearer|
       bearer.token_store = token_store
-      bearer.anoymous_allowed = true
+      bearer.anonymous_allowed = true
     end
     manager.bearer(:user) do |bearer|
       bearer.token_store = token_store
-      bearer.anoymous_allowed = false
+      bearer.anonymous_allowed = false
     end
   end
+
   use Honeydew::Middleware, token_store: token_store
 end
 
