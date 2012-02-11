@@ -1,12 +1,12 @@
 # This file is used by Rack-based servers to start the application.
 
-require ::File.expand_path('../lib/honeydew',  __FILE__)
+require ::File.expand_path('../lib/hadley',  __FILE__)
 require 'dalli'
 require 'sinatra/base'
 require 'json'
 
-class ToyMiddleware < Sinatra::Base
-  include Honeydew::Authz
+class ExampleResourceServer < Sinatra::Base
+  include Hadley::Authz
 
   get '/' do
     body 'afid-resource-server'
@@ -22,7 +22,7 @@ class ToyMiddleware < Sinatra::Base
     body({current_time: Time.now.strftime('%s')}.to_json)
   end
 
-  token_store = Honeydew::TokenAccess.new(Dalli::Client.new)
+  token_store = Hadley::TokenAccess.new(Dalli::Client.new)
 
   use Rack::Session::Cookie, :secret => 'a8ab10237100f16d12b6c8e574e84b92cc15aecaced04d47251a5f34ffaa0e60'
 
@@ -46,7 +46,7 @@ class ToyMiddleware < Sinatra::Base
     end
   end
 
-  use Honeydew::Middleware, token_store: token_store
+  use Hadley::Middleware, token_store: token_store
 end
 
-run ToyMiddleware
+run ExampleResourceServer

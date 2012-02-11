@@ -1,6 +1,7 @@
+require 'hadley/utils'
 require 'warden'
 
-module Honeydew
+module Hadley
 
   module Authz
 
@@ -20,8 +21,7 @@ module Honeydew
       protected
 
       def create_strategy(name)
-        class_name = camelize(name.to_s)
-        # puts "Class Name: #{class_name}"
+        class_name = Hadley::Utils::camelize(name.to_s)
         if self.const_defined?(class_name)
           self.const_get(class_name) 
         else
@@ -40,12 +40,6 @@ module Honeydew
         strategy.const_set("CONFIG", config) unless strategy.const_defined?("CONFIG")
       end
 
-      def camelize(word, uc_first = true)
-        parts = word.split('_')
-        assemble = lambda { |head, tail| head + tail.capitalize }
-        uc_first ? parts.inject('', &assemble) : parts.inject(&assemble)
-      end
-
     end
 
     class Strategy < Warden::Strategies::Base
@@ -56,8 +50,8 @@ module Honeydew
       end
     end
 
-    require 'honeydew/authz/basic'
-    require 'honeydew/authz/bearer'
+    require 'hadley/authz/basic'
+    require 'hadley/authz/bearer'
   
   end
 

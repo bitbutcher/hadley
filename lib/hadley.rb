@@ -1,21 +1,21 @@
 require 'sinatra/base'
 require 'warden'
-require 'honeydew/version'
-require 'honeydew/config'
-require 'honeydew/token_access'
-require 'honeydew/authz'
+require 'hadley/version'
+require 'hadely/config'
+require 'hadley/token_access'
+require 'hadley/authz'
 
-module Honeydew
+module Hadley
 
   class Middleware < Sinatra::Base
 
-    include Honeydew::Authz
+    include Hadley::Authz
 
     attr_reader :confg
 
     def initialize(app=nil, options={})
       super(app)
-      @config ||= Honeydew::Config.new(options)
+      @config ||= Hadley::Config.new(options)
       yield @config if block_given?
       @tokens = @config.token_store
       self
@@ -27,7 +27,6 @@ module Honeydew
 
     put '/access/tokens/:token' do |token|
       warden.authenticate!(:afid_server)
-      # logger.info "Warden User: #{warden.user}"
       begin
         @tokens.put(token, Integer(params.fetch('expires_in')), 
           identity: params.fetch('identity'), 

@@ -14,13 +14,13 @@ module Rack::Auth::Bearer
 
 end
 
-module Honeydew
+module Hadley
     
   module Authz
 
     module Bearer
 
-      class Strategy < Honeydew::Authz::Strategy
+      class Strategy < Hadley::Authz::Strategy
 
         def auth
           @auth ||= Rack::Auth::Bearer::Request.new(env)
@@ -33,7 +33,6 @@ module Honeydew
         def authenticate!(anonymous_allowed=false)
           return unauthorized unless auth.provided? and auth.bearer? and auth.token
           user = config.token_store.get(auth.token)
-          # puts "The user is: #{user}\nAnonymous Allowed: #{config.anonymous_allowed}\nStrategy: #{self.class.name}"
           return unauthorized unless user and (!user[:anonymous] or config.anonymous_allowed)
           success!(user)
         end
@@ -49,7 +48,7 @@ module Honeydew
       module ConfigExtension
 
         def bearer(name, &block)
-          config = Honeydew::Config.new(
+          config = Hadley::Config.new(
             realm: 'Access Tokens',
             fail_message: 'Authorization Failed',
             anonymous_allowed: false
@@ -61,7 +60,7 @@ module Honeydew
               config.instance_eval(&block)
             end
           end
-          Honeydew::Authz::Bearer::Strategy.build(name, config) unless config.token_store.nil?
+          Hadley::Authz::Bearer::Strategy.build(name, config) unless config.token_store.nil?
         end
       
       end
@@ -72,4 +71,4 @@ module Honeydew
 
 end
 
-Warden::Config.send(:include, Honeydew::Authz::Bearer::ConfigExtension)
+Warden::Config.send(:include, Hadley::Authz::Bearer::ConfigExtension)

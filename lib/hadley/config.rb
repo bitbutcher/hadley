@@ -1,4 +1,4 @@
-module Honeydew
+module Hadley
 
   class Config
 
@@ -7,16 +7,13 @@ module Honeydew
     end
 
     def method_missing(name, *args, &block)
-      # puts "Name: #{name}, Args: #{args}, Block: #{block}"
       if block_given?
-        result = proc(name, &block)
+        proc(name, &block)
       elsif name =~ /(.+)=$/
-        result = set($1, *args, &block)
+        set($1, *args, &block)
       else
-        result = get(name, &block)
+        get(name, &block)
       end
-      # puts "Result: #{result}"
-      result
     end
 
     def proc(name, &block)

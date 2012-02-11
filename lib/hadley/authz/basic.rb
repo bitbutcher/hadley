@@ -1,10 +1,10 @@
-module Honeydew
+module Hadley
     
   module Authz
 
     module Basic
 
-      class Strategy < Honeydew::Authz::Strategy
+      class Strategy < Hadley::Authz::Strategy
 
         def auth
           @auth ||= Rack::Auth::Basic::Request.new(env)
@@ -32,7 +32,7 @@ module Honeydew
       module ConfigExtension
 
         def basic(name, &block)
-          config = Honeydew::Config.new(
+          config = Hadley::Config.new(
             realm: 'Access Tokens',
             fail_message: 'Authorization Failed',
             hash_credentials: false
@@ -44,7 +44,7 @@ module Honeydew
               config.instance_eval(&block)
             end
           end
-          Honeydew::Authz::Basic::Strategy.build(name, config) unless config.lookup.nil?
+          Hadley::Authz::Basic::Strategy.build(name, config) unless config.lookup.nil?
         end
       
       end
@@ -55,4 +55,4 @@ module Honeydew
 
 end
 
-Warden::Config.send(:include, Honeydew::Authz::Basic::ConfigExtension)
+Warden::Config.send(:include, Hadley::Authz::Basic::ConfigExtension)

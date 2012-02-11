@@ -1,8 +1,8 @@
-module Honeydew
+module Hadley
+
+  ANONYMOUS_IDENTITY = '0' * 66
 
   class TokenAccess
-
-    @@ANONYMOUS_IDENTITY = '0' * 66
 
     def initialize(store)
       @store = store
@@ -15,7 +15,7 @@ module Honeydew
     def get(token)
       access = @store.get(key_for(token))
       if access
-        access[:anonymous] = access[:identity] == @@ANONYMOUS_IDENTITY
+        access[:anonymous] = access[:identity] == Hadley::ANONYMOUS_IDENTITY
       end
       access
     end
