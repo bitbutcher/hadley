@@ -1,33 +1,35 @@
-require 'honeydew/version'
-require 'honeydew/authz'
-require 'honeydew/token_access'
 require 'sinatra/base'
-require 'dalli'
+require 'warden'
+require 'honeydew/version'
+require 'honeydew/config'
+require 'honeydew/token_access'
+require 'honeydew/authz'
 
 module Honeydew
 
   class Middleware < Sinatra::Base
 
-    set :cache, Dalli::Client.new
-    disable :show_exceptions
-    enable :raise_errors
-
-    def token_store
-      settings.cache
-    end
-
     include Honeydew::Authz
-    include Honeydew::TokenAccess
 
-    configure :production, :development do
-      enable :logging
+    attr_reader :confg
+
+    def initialize(app=nil, options={})
+      super(app)
+      @config ||= Honeydew::Config.new(options)
+      yield @config if block_given?
+      @tokens = @config.token_store
+      self
     end
+
+    # ------------------------------------------
+    # Routes
+    # ------------------------------------------
 
     put '/access/tokens/:token' do |token|
-      warden.authenticate!(:afid)
+      warden.authenticate!(:afid_server)
       logger.info "Warden User: #{warden.user}"
       begin
-        put_token(token, Integer(params.fetch('expires_in')), 
+        @tokens.put(token, Integer(params.fetch('expires_in')), 
           identity: params.fetch('identity'), 
           client: params.fetch('client')
         )
@@ -39,9 +41,9 @@ module Honeydew
     end
 
     delete '/access/token/:token' do |token|
-      warden.authenticate!(:afid)
+      warden.authenticate!(:afid_server)
       begin
-        delete_token(token)
+        @tokens.delete(token)
         body 'Token Deleted'
       rescue => e
         status 400
@@ -49,14 +51,13 @@ module Honeydew
       end
     end
 
-    get '/api/resources' do
-      warden.authenticate!(:bearer)
-      logger.info "Warden User: #{warden.user}"
-      body 'This is the resource you requested'
-    end
+    # ------------------------------------------
+    # Config
+    # ------------------------------------------
 
-    use Rack::Session::Cookie, :secret => "somesecretkey"
-    use Warden::Manager
+    disable :show_exceptions
+    enable :raise_errors
+    enable :logging
 
   end
 

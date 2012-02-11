@@ -1,5 +1,3 @@
-require 'warden'
-
 module Rack::Auth::Bearer
 
   class Request < Rack::Auth::AbstractRequest
@@ -20,35 +18,58 @@ module Honeydew
     
   module Authz
 
-    class Bearer < Warden::Strategies::Base
+    module Bearer
 
-      def auth
-        @auth ||= Rack::Auth::Bearer::Request.new(env)
+      class Strategy < Honeydew::Authz::Strategy
+
+        def auth
+          @auth ||= Rack::Auth::Bearer::Request.new(env)
+        end
+
+        def store?
+          false
+        end
+
+        def authenticate!(anonymous_allowed=false)
+          return unauthorized unless auth.provided? and auth.bearer? and auth.token
+          user = config.token_store.get(auth.token)
+          puts "The user is: #{user}, Anonymous Allowed: #{config.anonymous_allowed}"
+          return unautorized unless user and (!user[:anonymous] or config.anonymous_allowed)
+          success!(user)
+        end
+
+        private
+
+        def unauthorized
+          custom!(Rack::Response.new([config.fail_message], 401, { 'WWW-Authenticate' => %Q{Bearer realm="#{config.realm}"} }))
+        end
+
       end
 
-      def store?
-        false
-      end
+      module ConfigExtension
 
-      def authenticate!
-        auth.provided? and auth.bearer? and auth.token and check_token(auth.token) or unauthorized
-      end
-
-      private
-
-      def check_token(token)
-        puts "Token: #{token}"
-        success! token
-      end
-
-      def unauthorized
-        custom!(Rack::Response.new([], 401, { 'WWW-Authenticate' => 'Bearer realm="Restricted Area"' }))
+        def bearer(name, &block)
+          config = Honeydew::Config.new(
+            realm: 'Access Tokens',
+            fail_message: 'Authorization Failed',
+            anonymous_allowed: false
+          )
+          if block_given?
+            if block.arity == 1 
+              yield config
+            else
+              config.instance_eval(&block)
+            end
+          end
+          Honeydew::Authz::Bearer::Strategy.build(name, config) unless config.token_store.nil?
+        end
+      
       end
 
     end
 
-    Warden::Strategies.add(:bearer, Honeydew::Authz::Bearer)
-
   end
 
 end
+
+Warden::Config.send(:include, Honeydew::Authz::Bearer::ConfigExtension)

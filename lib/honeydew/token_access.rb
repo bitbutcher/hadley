@@ -1,19 +1,31 @@
-module Honeydew::TokenAccess
+module Honeydew
 
-  def key_for(token)
-    "afid-access-token:#{token}"
-  end
+  class TokenAccess
 
-  def access_for(token)
-    token_store.get(key_for(token))
-  end
+    @@ANONYMOUS_IDENTITY = '0' * 66
 
-  def put_token(token, expires_in, data={})
-    token_store.set(key_for(token), data, expires_in)
-  end
+    def initialize(store)
+      @store = store
+    end
 
-  def delete_token(token)
-    token_store.delete(key_for(token))
+    def key_for(token)
+      "afid-access-token:#{token}"
+    end
+
+    def get(token)
+      access = @store.get(key_for(token))
+      access[:anonymous] = access[:identity] == @@ANONYMOUS_IDENTITY
+      access
+    end
+
+    def put(token, expires_in, data={})
+      @store.set(key_for(token), data, expires_in)
+    end
+
+    def delete(token)
+      @store.delete(key_for(token))
+    end
+
   end
 
 end
