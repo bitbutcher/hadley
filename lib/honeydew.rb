@@ -1,36 +1,32 @@
 require 'honeydew/version'
+require 'honeydew/authz'
 require 'honeydew/token_access'
-require 'sinatra'
+require 'sinatra/base'
 require 'dalli'
-require 'modularity'
 
 module Honeydew
 
   class Middleware < Sinatra::Base
 
     set :cache, Dalli::Client.new
+    disable :show_exceptions
+    enable :raise_errors
 
+    def token_store
+      settings.cache
+    end
+
+    include Honeydew::Authz
     include Honeydew::TokenAccess
 
     configure :production, :development do
       enable :logging
     end
 
-    def check_credentials(id, secret)
-      logger.info "Id: #{id}, Secret: #{secret}"
-      true
-    end
-
-    before '/access/tokens/*' do
-      @auth ||= Rack::Auth::Basic::Request.new(request.env)
-      unless @auth.provided? and @auth.basic? and @auth.credentials and check_credentials(@auth.credentials[0], @auth.credentials[1])
-        halt 401, { 'WWW-Authenticate' => 'Basic realm="AccessTokens"' }, ''
-      end
-    end
-
     put '/access/tokens/:token' do |token|
+      warden.authenticate!(:afid)
+      logger.info "Warden User: #{warden.user}"
       begin
-        logger.info "Params: #{params}"
         put_token(token, Integer(params.fetch('expires_in')), 
           identity: params.fetch('identity'), 
           client: params.fetch('client')
@@ -43,6 +39,7 @@ module Honeydew
     end
 
     delete '/access/token/:token' do |token|
+      warden.authenticate!(:afid)
       begin
         delete_token(token)
         body 'Token Deleted'
@@ -51,6 +48,15 @@ module Honeydew
         body e.to_s
       end
     end
+
+    get '/api/resources' do
+      warden.authenticate!(:bearer)
+      logger.info "Warden User: #{warden.user}"
+      body 'This is the resource you requested'
+    end
+
+    use Rack::Session::Cookie, :secret => "somesecretkey"
+    use Warden::Manager
 
   end
 
