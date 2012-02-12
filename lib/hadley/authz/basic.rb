@@ -54,5 +54,3 @@ module Hadley
   end
 
 end
-
-Warden::Config.send(:include, Hadley::Authz::Basic::ConfigExtension)

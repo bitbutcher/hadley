@@ -1,13 +1,10 @@
-module Hadley
+module Hadley::Utils
+  extend self
 
-	module Utils
-
-    def camelize(word, uc_first=true)
-      parts = word.split('_')
-      assemble = lambda { |head, tail| head + tail.capitalize }
-      uc_first ? parts.inject('', &assemble) : parts.inject(&assemble)
-    end
-
+  def camelize(word, uc_first=true)
+    parts = word.split('_')
+    assemble = lambda { |head, tail| head + tail.capitalize }
+    uc_first ? parts.inject('', &assemble) : parts.inject(&assemble)
   end
-    
+
 end

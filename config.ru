@@ -1,6 +1,6 @@
 # This file is used by Rack-based servers to start the application.
-
-require ::File.expand_path('../lib/hadley',  __FILE__)
+require 'rubygems'
+require 'hadley'
 require 'dalli'
 require 'sinatra/base'
 require 'json'
