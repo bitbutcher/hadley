@@ -1,4 +1,4 @@
-class Hadley::TokenAccess
+class Hadley::TokenStore
 
   def initialize(store)
     @store = store
@@ -9,7 +9,7 @@ class Hadley::TokenAccess
   end
 
   def get(token)
-    access = @store.get(key_for(token))
+    access = @store.read(key_for(token))
     if access
       access[:anonymous] = access[:identity] == Hadley::ANONYMOUS_IDENTITY
     end
@@ -17,7 +17,7 @@ class Hadley::TokenAccess
   end
 
   def put(token, expires_in, data={})
-    @store.set(key_for(token), data, expires_in)
+    @store.write(key_for(token), data, expires_in: expires_in)
   end
 
   def delete(token)

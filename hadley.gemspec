@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.require_paths = [ 'lib' ]
 
   s.add_development_dependency 'rspec'
+  s.add_development_dependency 'active_support'
   s.add_development_dependency 'dalli'
   s.add_runtime_dependency 'sinatra'
   s.add_runtime_dependency 'warden'

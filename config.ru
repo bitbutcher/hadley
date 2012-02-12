@@ -1,6 +1,7 @@
 # This file is used by Rack-based servers to start the application.
 require 'rubygems'
 require 'hadley'
+require 'active_support'
 require 'dalli'
 require 'sinatra/base'
 require 'json'
@@ -22,7 +23,7 @@ class ExampleResourceServer < Sinatra::Base
     body({current_time: Time.now.strftime('%s')}.to_json)
   end
 
-  token_store = Hadley::TokenAccess.new(Dalli::Client.new)
+  token_store = Hadley::TokenStore.new(ActiveSupport::Cache.lookup_store(:dalli_store))
 
   use Rack::Session::Cookie, :secret => 'a8ab10237100f16d12b6c8e574e84b92cc15aecaced04d47251a5f34ffaa0e60'
 
