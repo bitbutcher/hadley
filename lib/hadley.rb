@@ -10,7 +10,7 @@ module Hadley
   autoload :TokenStore, 'hadley/token_store'
   autoload :Utils, 'hadley/utils'
 
-  VERSION = '0.0.1'
+  VERSION = '0.0.2'
 
   ANONYMOUS_IDENTITY = '0' * 66
 
