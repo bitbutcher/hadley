@@ -29,7 +29,7 @@ class ExampleResourceServer < Sinatra::Base
 
   use Warden::Manager do |manager|
     manager.basic(:server) do |basic|
-      basic.hash_credentials = true
+      basic.hash_credentials true
       basic.lookup do |id, secret|
         [ id, secret] == [
           'a8ab10237100f16d12b6c8e574e84b92cc15aecaced04d47251a5f34ffaa0e60',
@@ -38,12 +38,12 @@ class ExampleResourceServer < Sinatra::Base
       end
     end
     manager.bearer(:client) do |bearer|
-      bearer.token_store = token_store
-      bearer.anonymous_allowed = true
+      bearer.token_store token_store
+      bearer.anonymous_allowed true
     end
     manager.bearer(:user) do |bearer|
-      bearer.token_store = token_store
-      bearer.anonymous_allowed = false
+      bearer.token_store token_store
+      bearer.anonymous_allowed false
     end
   end
 
