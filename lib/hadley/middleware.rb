@@ -1,9 +1,15 @@
+# This class provides the rack middleware that builds on top of warden to provide the necessary endpoints for a rack 
+# application to function as an AFID protected resource.
 class Hadley::Middleware < Sinatra::Base
 
   include Hadley::Authz
 
-  attr_reader :confg
-
+  # Initializes the middleware with the provided application and options
+  #
+  # @param [Rack::Application] app The rack application that this middleware is participating in
+  # @param [Hash] options The Hash of keyword arguments
+  # @param [Hadley::TokenStore] options.store The token store to be used for persisting tokens provisioned by the AFID
+  #  authorization server
   def initialize(app=nil, options={})
     super(app)
     @config ||= Hadley::Config.new(options)
@@ -12,10 +18,7 @@ class Hadley::Middleware < Sinatra::Base
     self
   end
 
-  # ------------------------------------------
-  # Routes
-  # ------------------------------------------
-
+  # The required endpoint for provisioning AFID access tokens.
   put '/access/tokens/:token' do |token|
     warden.authenticate!(:afid_server)
     begin
@@ -30,6 +33,7 @@ class Hadley::Middleware < Sinatra::Base
     end
   end
 
+  # The required endpoint for invalidating AFID access tokens.
   delete '/access/tokens/:token' do |token|
     warden.authenticate!(:afid_server)
     begin

@@ -2,6 +2,7 @@ autoload :Rack, 'rack'
 autoload :Sinatra, 'sinatra/base'
 autoload :Warden, 'warden'
 
+# This module is a namespace for all modules and classes related to the AFID resource server rack middleware
 module Hadley
 
   autoload :Authz, 'hadley/authz'
@@ -10,8 +11,10 @@ module Hadley
   autoload :TokenStore, 'hadley/token_store'
   autoload :Utils, 'hadley/utils'
 
-  VERSION = '0.0.2'
+  # The current version of this ruby gem
+  VERSION = '0.0.3'
 
+  # The identity key for the AFID anonymous identity
   ANONYMOUS_IDENTITY = '0' * 66
 
 end
