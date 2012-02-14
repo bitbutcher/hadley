@@ -15,32 +15,33 @@ Rails:
 3. Run <tt>touch config/initializers/hadley.rb</tt> from your project root
 
 4. Add warden and hadley to your middleware stack by opening <tt>config/initializers/hadlery.rb</tt> in your favorite
-text editor and adding the following:
-  token_store = Hadley::TokenStore.new(Rails.cache)
+  text editor and adding the following:
 
-  MyApp::Application.config.middleware.insert_after ActionDispatch::Session::CookieStore, Warden::Manager do |manager|
-    # setup authentication for the afid server to provision and revoke access tokens
-    manager.basic(:server) do |basic|
-      basic.hash_credentials true
-      basic.lookup do |id, secret|
-        [ id, secret ] == [ 'my_hashed_id', 'my_hashed_secret' ] ? id : nil
+    token_store = Hadley::TokenStore.new(Rails.cache)
+
+    MyApp::Application.config.middleware.insert_after ActionDispatch::Session::CookieStore, Warden::Manager do |manager|
+      # setup authentication for the afid server to provision and revoke access tokens
+      manager.basic(:server) do |basic|
+        basic.hash_credentials true
+        basic.lookup do |id, secret|
+          [ id, secret ] == [ 'my_hashed_id', 'my_hashed_secret' ] ? id : nil
+        end
+      end
+      # setup authentication for afid clients to authenticate in anonymous mode (client_credentials grant type in OAuth2 
+      # parlance)
+      manager.bearer(:client) do |bearer|
+        bearer.token_store token_store
+        bearer.anonymous_allowed true
+      end
+      # setup authentication for afid clients to access apis on behalf of a particular user (authorization_grant grant 
+      # type in OAuth2 parlance)
+      manager.bearer(:user) do |bearer|
+        bearer.token_store token_store
+        bearer.anonymous_allowed false
       end
     end
-    # setup authentication for afid clients to authenticate in anonymous mode (client_credentials grant type in OAuth2 
-    # parlance)
-    manager.bearer(:client) do |bearer|
-      bearer.token_store token_store
-      bearer.anonymous_allowed true
-    end
-    # setup authentication for afid clients to access apis on behalf of a particular user (authorization_grant grant 
-    # type in OAuth2 parlance)
-    manager.bearer(:user) do |bearer|
-      bearer.token_store token_store
-      bearer.anonymous_allowed false
-    end
-  end
 
-  MyApp::Application.config.middleware.insert_after Warden::Manager, Hadley::Middleware, token_store: token_store
+    MyApp::Application.config.middleware.insert_after Warden::Manager, Hadley::Middleware, token_store: token_store
 
 5. Run <tt>rake middleware</tt> from your project root and verify that 
    Parsnip::Middleware appears before ActionDispatch::ParamsParser
