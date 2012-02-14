@@ -14,8 +14,7 @@ Rails:
 
 3. Run <tt>touch config/initializers/hadley.rb</tt> from your project root
 
-4. Add warden and hadley to your middleware stack by opening <tt>config/initializers/hadlery.rb</tt> in your favorite
-  text editor and adding the following:
+4. Add warden and hadley to your middleware stack by opening <tt>config/initializers/hadlery.rb</tt> in your favorite text editor and adding the following:
 
     token_store = Hadley::TokenStore.new(Rails.cache)
 
@@ -43,5 +42,4 @@ Rails:
 
     MyApp::Application.config.middleware.insert_after Warden::Manager, Hadley::Middleware, token_store: token_store
 
-5. Run <tt>rake middleware</tt> from your project root and verify that 
-   Parsnip::Middleware appears before ActionDispatch::ParamsParser
+5. Run <tt>rake middleware</tt> from your project root and verify that <tt>Warden::Manager</tt> appears after <tt>ActionDispatch::Session::CookieStore</tt> and <tt>Hadley::Middleware</tt> appears after <tt>Warden::Manager</tt>
