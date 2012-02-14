@@ -8,7 +8,7 @@ Rack-based web applications to easily become AFID protected resource servers.
 
 Rails: 
 
-1. Add <tt>gem 'parsnip'</tt> to your Gemfile
+1. Add <tt>gem 'hadley'</tt> to your Gemfile
 
 2. Run <tt>bundle</tt> from your project root
 
